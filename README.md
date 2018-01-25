@@ -121,6 +121,8 @@ def draw_lines(img, lines, color=[255, 0, 0], thickness=10):
 ```
 
 ## The Final Output
+[Output video] - All output videos is in this folder. 
+
 <p align="center">
     <img src="./test_image_out/image_out.png" alt="Final output">
 </p>
@@ -139,3 +141,6 @@ but it still have many bug to fix.
 * reset the Mask image funcion size
 * More determine the conditions to avoid error
 * And I think in the future course, we will use **Convolutional Neural Networks(CNN)** to improve it!
+
+
+[Output video]: ./test_vidoes_output/
