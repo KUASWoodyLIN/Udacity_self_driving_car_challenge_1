@@ -143,4 +143,4 @@ but it still have many bug to fix.
 * And I think in the future course, we will use **Convolutional Neural Networks(CNN)** to improve it!
 
 
-[Output video]: ./test_vidoes_output/
+[Output video]: https://github.com/KUASWoodyLIN/Udacity-self-driving-car-challenge-1/tree/master/test_videos_output
