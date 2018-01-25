@@ -1,55 +1,141 @@
 # **Finding Lane Lines on the Road** 
-[![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
 
-<img src="examples/laneLines_thirdPass.jpg" width="480" alt="Combined Image" />
+## **Reflection**
 
-Overview
----
+### My pipeline consisted of 6 step.
 
-When we drive, we use our eyes to decide where to go.  The lines on the road that show us where the lanes are act as our constant reference for where to steer the vehicle.  Naturally, one of the first things we would like to do in developing a self-driving car is to automatically detect lane lines using an algorithm.
+1. **Grayscale** - The original image is 3 channel, this function turn it into 1 channel.
+<p align="center">
+    <img src="./test_image_out/gray_image.png" alt="Grayscale"  width="300">
+</p>
 
-In this project you will detect lane lines in images using Python and OpenCV.  OpenCV means "Open-Source Computer Vision", which is a package that has many useful tools for analyzing images.  
+2. **Gaussian blur** - Run Gaussian smoothing, before running Canny will get better effect. Here I set the mask (5, 5).
+<p align="center">
+    <img src="./test_image_out/blur_image.png" alt="Gaussian blur" width="300">
+</p>
 
-To complete the project, two files will be submitted: a file containing project code and a file containing a brief write up explaining your solution. We have included template files to be used both for the [code](https://github.com/udacity/CarND-LaneLines-P1/blob/master/P1.ipynb) and the [writeup](https://github.com/udacity/CarND-LaneLines-P1/blob/master/writeup_template.md).The code file is called P1.ipynb and the writeup template is writeup_template.md 
+3. **Canny edge detector** - A method of edge detection.
+<p align="center">
+    <img src="./test_image_out/edge_image.png" alt="Canny edge detector" width="300">
+</p>
 
-To meet specifications in the project, take a look at the requirements in the [project rubric](https://review.udacity.com/#!/rubrics/322/view)
+4. **Mask image** - Remove unuseful areas.
+<p align="center">
+    <img src="./test_image_out/mask_test.png" alt="Mask image"  width="250">
+    <img src="./test_image_out/mask_image.png" alt="Mask image"  width="250">    
+</p>
 
+5. **Line image** - Using cv.HoughLinesP and cv.line function to draw line.
+<p align="center">
+    <img src="./test_image_out/line_image.png" alt="Line image" width="300">
+</p>
 
-Creating a Great Writeup
----
-For this project, a great writeup should provide a detailed response to the "Reflection" section of the [project rubric](https://review.udacity.com/#!/rubrics/322/view). There are three parts to the reflection:
+6. **Weighted images** - Add two images together (one is or original image and anther is line image)
+<p align="center">
+    <img src="./test_image_out/add_image.png" alt="Weighted images" width="300">
+</p>
 
-1. Describe the pipeline
+## **draw_lines Function**
+### In order to draw a single line on the left and right lanes, I modified the draw_lines() function like down, you can divide it into 5 step.
 
-2. Identify any shortcomings
+```
+# draw line parameters, the parameters need reset berfor running function
+x_1_pre, x_2_pre, y_1_pre, y_2_pre = [0, 0], [0, 0], [0, 0], [0, 0]
+run_count = 0
 
-3. Suggest possible improvements
+def draw_lines(img, lines, color=[255, 0, 0], thickness=10):
+    global x_1_pre, x_2_pre, y_1_pre, y_2_pre, run_count
+    ymax1 = 0
+    ymax2 = 0
 
-We encourage using images in your writeup to demonstrate how your pipeline works.  
+    # 1. Find the two longest lines in left and right
+    x_1, y_1, x_2, y_2 = [0, 0], [0, 0], [0, 0], [0, 0]
+    for line in lines:
+        for x1,y1,x2,y2 in line:
+            if (y1 - y2) > 0:
+                if abs(y1 - y2) > ymax1:
+                    x_1 = [x1, x2]
+                    y_1 = [y1, y2]
+                    ymax1 = abs(y1 - y2)
+            else:
+                if abs(y1 - y2) > ymax2:
+                    x_2 = [x1, x2]
+                    y_2 = [y1, y2]
+                    ymax2 = abs(y1 - y2)
+                    
+    # 2. TO avoid lines change too big, can resist some interference
+    dx1 = [(x_1_pre[0] - x_1[0]), (x_1_pre[1] - x_1[1])]
+    dx2 = [(x_2_pre[0] - x_2[0]), (x_2_pre[1] - x_2[1])]
+    dy1 = [(y_1_pre[0] - y_1[0]), (y_1_pre[1] - y_1[1])]
+    dy2 = [(y_2_pre[0] - y_2[0]), (y_2_pre[1] - y_2[1])]
+    dup = 10
+    ddown = 5
+    if run_count > 5:
+        if dup > abs(dx1[0]) > ddown or dup > abs(dx1[1]) > ddown or \
+           dup > abs(dy1[0]) > ddown or dup > abs(dy1[1]) > ddown:
+            x_1 = [x_1_pre[0] - int(dx1[0] / 5), x_1_pre[1] - int(dx1[1] / 5)]
+            y_1 = [y_1_pre[0] - int(dy1[0] / 5), y_1_pre[1] - int(dy1[1] / 5)]
+        elif abs(dx1[0]) > dup or abs(dx1[1]) > dup or \
+             abs(dy1[0]) > dup or abs(dy1[1]) > dup:
+            x_1 = x_1_pre
+            y_1 = y_1_pre
+        if dup > abs(dx2[0]) > ddown or dup > abs(dx2[1]) > ddown or \
+           dup > abs(dy2[0]) > ddown or dup > abs(dy2[1]) > ddown:
+            x_2 = [x_2_pre[0] - int(dx2[0] / 5), x_2_pre[1] - int(dx2[1] / 5)]
+            y_2 = [y_2_pre[0] - int(dy2[0] / 5), y_2_pre[1] - int(dy2[1] / 5)]
+        elif abs(dx2[0]) > dup or abs(dx2[1]) > dup or \
+             abs(dy2[0]) > dup or abs(dy2[1]) > dup:
+            x_2 = x_2_pre
+            y_2 = y_2_pre
+    else:
+        run_count += 1
 
-All that said, please be concise!  We're not looking for you to write a book here: just a brief description.
+    # 3. Averag lef and right lines
+    # averag the X-axis point
+    dw = (x_2[0] - x_1[1]) / 2
+    x_1[1] = int(width / 2 - dw)
+    x_2[0] = int(width / 2 + dw)
+    # averag the Y-axis point
+    dh = (y_2[0] - y_1[1]) / 2
+    y_2[0] = int(y_2[0] + dh)
+    y_1[1] = int(y_2[0] + dh)
+        
+    # 4. Make sure lines can connect to images bottom
+    if x_1[0] != 0:
+        c = (x_1[1] - x_1[0]) / (y_1[1] - y_1[0])
+        x_1[0] = int(x_1[0] - (y_1[0] - height) * c)
+        y_1[0] = height
+    if x_2[1] != 0:
+        c = (x_2[0] - x_2[1]) / (y_2[0] - y_2[1])
+        x_2[1] = int(x_2[1] - (y_2[1] - height) * c)
+        y_2[1] = height
+        
+    # 5. updata
+    x_1_pre = x_1
+    y_1_pre = y_1
+    x_2_pre = x_2
+    y_2_pre = y_2
+    ymax_pre = max(ymax1, ymax2)
+    cv2.line(img, (x_1[0], y_1[0]), (x_1[1], y_1[1]), color, thickness)
+    cv2.line(img, (x_2[0], y_2[0]), (x_2[1], y_2[1]), color, thickness)
+```
 
-You're not required to use markdown for your writeup.  If you use another method please just submit a pdf of your writeup. Here is a link to a [writeup template file](https://github.com/udacity/CarND-LaneLines-P1/blob/master/writeup_template.md). 
+## The Final Output
+<p align="center">
+    <img src="./test_image_out/image_out.png" alt="Final output">
+</p>
 
+## 2. Identify potential shortcomings with your current pipeline
 
-The Project
----
+* If the image lost the path, then **draw_line function** can't found two longest line, 
+and I have met this problem in **challenge video**, so I make the **draw_line funtion** (in function step2.) more better, 
+but it still have many bug to fix.
 
-## If you have already installed the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) you should be good to go!   If not, you should install the starter kit to get started on this project. ##
+* Another problem I met is images size, there may be many different images sizes, then this will result **Mask image function** unuseful.
 
-**Step 1:** Set up the [CarND Term1 Starter Kit](https://classroom.udacity.com/nanodegrees/nd013/parts/fbf77062-5703-404e-b60c-95b78b2f3f9e/modules/83ec35ee-1e02-48a5-bdb7-d244bd47c2dc/lessons/8c82408b-a217-4d09-b81d-1bda4c6380ef/concepts/4f1870e0-3849-43e4-b670-12e6f2d4b7a7) if you haven't already.
+## 3. Suggest possible improvements to your pipeline
 
-**Step 2:** Open the code in a Jupyter Notebook
-
-You will complete the project code in a Jupyter notebook.  If you are unfamiliar with Jupyter Notebooks, check out <A HREF="https://www.packtpub.com/books/content/basics-jupyter-notebook-and-python" target="_blank">Cyrille Rossant's Basics of Jupyter Notebook and Python</A> to get started.
-
-Jupyter is an Ipython notebook where you can run blocks of code and see results interactively.  All the code for this project is contained in a Jupyter notebook. To start Jupyter in your browser, use terminal to navigate to your project directory and then run the following command at the terminal prompt (be sure you've activated your Python 3 carnd-term1 environment as described in the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) installation instructions!):
-
-`> jupyter notebook`
-
-A browser window will appear showing the contents of the current directory.  Click on the file called "P1.ipynb".  Another browser window will appear displaying the notebook.  Follow the instructions in the notebook to complete the project.  
-
-**Step 3:** Complete the project and submit both the Ipython notebook and the project writeup
-
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
+* Paramrter tuning
+* reset the Mask image funcion size
+* More determine the conditions to avoid error
+* And I think in the future course, we will use **Convolutional Neural Networks(CNN)** to improve it!
