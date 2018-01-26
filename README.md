@@ -1,6 +1,6 @@
 # **Finding Lane Lines on the Road** 
 
-## **Reflection**
+## 1. **Reflection**
 
 ### My pipeline consisted of 6 step.
 
@@ -36,7 +36,7 @@
 </p>
 
 ## **draw_lines Function**
-### In order to draw a single line on the left and right lanes, I modified the draw_lines() function like down, you can divide it into 5 step.
+ In order to draw a single line on the left and right lanes, I modified the draw_lines() function like down, you can divide it into 5 step.
 
 ```
 # draw line parameters, the parameters need reset berfor running function
@@ -120,14 +120,14 @@ def draw_lines(img, lines, color=[255, 0, 0], thickness=10):
     cv2.line(img, (x_2[0], y_2[0]), (x_2[1], y_2[1]), color, thickness)
 ```
 
-## The Final Output
+### The Final Output
 [Output video] - All output videos is in this folder. 
 
 <p align="center">
     <img src="./test_image_out/image_out.png" alt="Final output">
 </p>
 
-## 2. Identify potential shortcomings with your current pipeline
+## 2. **Identify potential shortcomings with your current pipeline**
 
 * If the image lost the path, then **draw_line function** can't found two longest line, 
 and I have met this problem in **challenge video**, so I make the **draw_line funtion** (in function step2.) more better, 
@@ -135,7 +135,7 @@ but it still have many bug to fix.
 
 * Another problem I met is images size, there may be many different images sizes, then this will result **Mask image function** unuseful.
 
-## 3. Suggest possible improvements to your pipeline
+## 3. **Suggest possible improvements to your pipeline**
 
 * Paramrter tuning
 * reset the Mask image funcion size
